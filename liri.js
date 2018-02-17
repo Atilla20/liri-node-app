@@ -1,160 +1,139 @@
-// ****************************************************** DOTENV PACKAGE *********************************************
+
 
 // config reads your .env file, parses the contents, assigns it to process.env, and returns an Object with a parsed key
-
 require("dotenv").config();
-
-//const result = dotenv.config();
-
-//if(result.error) {
-    //return console.log(error);
-//}
-
-//console.log(result.parsed);
-
 
 var action = process.argv[2];
 var value = process.argv[3];
-
-
-
-// ****************************************************** IMPORT KEYS.JS FILE *********************************************
-
-var keys = require('./keys.js');
-
-// Add code require to import keys.js file and store it in a variable
-
-//var spotify = new Spotify(keys.spotify);
-//var client = new Twitter(keys.twitter);
-
-// ****************************************************** Function Commands *********************************************
-
-
-
-// to retrieve data from Twitter, Spotify, and OMDB APIs you need to send requests. 
-
-//Use Request to grab data from the OMDB API
-
-
-// Make it so liri.js can take in *my-tweets (this will show your last 20 tweets and when they were created in your terminal window)
-
-//'spotify-this-song' (This will show the following info: Artist(s), song name, a preview link of the song from Spotify, the album that the song is from
-//Use the node-spotify-api package to retrieve song info from Spotify's API
-
-//Use request package to retrieve data from the OMDB API. This API does require an API key. You may use trilogy??? What does that mean?
-
-//Use the fs NOde packaget to make LIRi take the txt inside of random.txt, and then use it to call one of LIRI's command. It should run spotify-this-song
-
-
-// ****************************************************** SPOTIFY *********************************************
-
-
-//In terminal npm install --save node-spotify-api
-
-var Spotify = require('node-spotify-api');
-
-Spotify.search({artist, query: 'My search query', limit: 20}, function(error, data) {
-    if(err) {
-        return console.log('err');
-    }
-
-    console.log(data);
-
-});
-
-// Spotify requests
-// var Spotify = require('node-spotify-api');
-// var spotify = new Spotify({
-    //id: <your spoitfy client id>,
-    //secret: <your spotify client secret>
-//});
-
-// spotify
-// .request('https://api.spotify.com/v1/tracks/7yCPwWs66K8')
-// .then(function(data) {
-    //console.log(data);
-//})
-//.catch(function(err) {
-    //console.log(error);
-//});
-
-// ****************************************************** TWITTER *********************************************
-
-//npm install twitter
-
 var Twitter = require('twitter');
+var keys = require('./keys');
 var client = new Twitter(keys.twitterKeys);
- 
- 
+
+
 var params = {
-    screen_name: 'Antilliack'
-} && {
-    coundt: 20
-};
-
-
-
-// ****************************************************** OMDB *********************************************
+    name: 'Antilliack',
+    count: 20
+}
 
 var request = require('request');
+var fs = require('fs');
 
-var fs = require('fs'); 
+//Course of action
 
-request('http://www.google.com', function (error, response, body) {
-  console.log('error:', error); // Print the error if one occurred
-  console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  console.log('body:', body); // Print the HTML for the Google homepage.
-});
+switch(params[0]) {
 
-
-// ****************************************************** SWITCH FOR ACTIONS AND VALUES*********************************************
-
-switch(action) {
-    case 'mytweets':
+    case 'my-tweets':
         myTweets();
         break;
-    case 'spotify':
-        spotifyThis(value);
-        break;
-    case 'omdb':
+    case'spotify-this-song':
+       if(params[1]) {  
+       spotifyIt();
+       } else {
+        spotifyIt('The Sign');
+       }
+       break;
+    case 'movie-this':
         omdbThis(value);
         break;
-    case 'command':
+    case 'do-what-it-says':
         command();
         break;
 }
 
 
-// ****************************************************** FUNCTIONS********************************************
 
 
-// MY-TWEETS
+
+
 
 function myTweets() {
-    client.get('statueses/user_timeline', params, function(error, tweets, response) {
-        if(!error && response.statusCode == 200) {
-            fs.appendFile('terminal.log', (Date() + '/r/nr//nTERMINAL COMMANDS:/R/N$:' + process.argv + '/r/n/r/nDATA OUTPUT:/r/n'), function(err) {
-               if(error) {
-                   return console.log(error);
-               }
+    client.get('statuses/user_timeline', params, function(error, tweets, response) {
+        if (!error && response.statusCode == 200) {
+
+            console.log('Last 20 Tweets:')
+            for (i = 0; i < tweets.length; i++) {
+                var number = i + 1
+                console.log('');
+                console.log([i + 1] + '. ' + tweets[i].text);
+                console.log('Created on: ' + tweets[i].created_at);
+                console.log(' ');
+            }
+
+        }
+
+    })
+}
+
+
+
+
+
+
+// spotifyThis function
+var Spotify = require('node-spotify-api');
+var spotify = new Spotify(keys.spotifyKeys);
+
+function spotifyIt() {
+    spotify.search({ type: 'track', query: params[1] }, function(err, data) {
+      if ( err ) {
+          console.log('Error occurred: ' + err);
+          return;  //from spotify npm docs
+      }
+      else{
+      var songInfo = data.tracks.items[0];
+      var songResult = console.log(songInfo.artists[0].name)
+                       console.log(songInfo.name)
+                       console.log(songInfo.album.name)
+                       console.log(songInfo.preview_url)
+      console.log(songResult);
+      };
+    });
+  }   // end spotifyThis function
+
+// omdbThis function
+function omdbThis(value) {
+    if (value == null) {
+        value = 'Mr. Nobody';
+    }
+    request('http://www.omdbapi.com/?t=' + value + '&tomatoes=true&r=json', function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var data = [];
+            jsonBody = JSON.parse(body);
+            
+            data.push({
+                'Title: ' : jsonData.Title,
+                'Year: ' : jsonData.Year,
+                'Rated: ' : jsonData.Rated,
+                'IMDB Rating: ' : jsonData.imdbRating,
+                'Country: ' : jsonData.Country,
+                'Language: ' : jsonData.Language,
+                'Plot: ' : jsonData.Plot,
+                'Actors: ' : jsonData.Actors,
+                'Rotten Tomatoes Rating: ' : jsonData.tomatoRating,
+                'Rotton Tomatoes URL: ' : jsonData.tomatoURL,
             });
 
-            console.log('');
-            console.log('Last 20 Tweets:')
-            for (i = 0; i <tweets.length; i++) {
-                var number = i + 1;
-                console.log('');
-                console.log([i+1] + '.' + tweets[i].text);
-                console.log('Created on: ' + tweets[i].created_at);
-                console.log('');
-                fs.appendFile('terminal.log', (number + '. Tweet: ' + tweets[i].text + '/r/nCreated at: ' + tweets[i].created_at + '/r/n') ,function(err) {
-                    if(err){
-                        return console.log(error);
-                    }
-                });
+       
+                console.log(data);
+                writeToLog(data);
+        }
+}) //end omdbThis function
+
+}
+
+//command function
+function command() {
+    fs.readFile('random.txt', 'utf8', function(error, data) {
+        if (error) {
+            console.log(error);
+        } else {
+            var dataArr = data.split(',');
+            if (dataArr[0] === 'spotify') {
+                spotifyThis(dataArr[1]);
+            }
+            if (dataArr[0] === 'omdb') {
+                omdbThis(dataArr[1]);
             }
         }
-    });
+    })
 } 
-
-// spotifyThis
